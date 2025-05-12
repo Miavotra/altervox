@@ -1,0 +1,116 @@
+<h1>Formulaire Société</h1>
+
+    <form action="{{ path('export_txt') }}" method="POST" id="societe-form">
+        <!-- Autres champs fixes -->
+        <label>Nom:</label>
+        <input type="text" name="nom" required><br>
+        <label>Prénom:</label>
+        <input type="text" name="prenom" required><br>
+    
+        <label>Nom de la société:</label>
+        <input type="text" name="societe" required><br>
+    
+        <label>Adresse:</label>
+        <input type="text" name="adresse" required><br>
+    
+        <label>Code postal:</label>
+        <input type="text" name="code_postal" required><br>
+    
+        <label>Commune:</label>
+        <input type="text" name="commune" required><br>
+    
+        <label>Adresse Mail:</label>
+        <input type="email" name="email" required><br>
+    
+        <label>Numéro de téléphone:</label>
+        <input type="tel" name="telephone" required><br>
+    
+        <label>Horaires d’ouverture (ex: Mo-Fr 09:00-17:00):</label>
+        <input type="text" name="horaires" required><br>
+    
+        <label>URL souhaité:</label>
+        <input type="url" name="url" required><br>
+    
+        <hr>
+    
+        <!-- Groupe d'activités -->
+        <div id="activites">
+          <h3>Activités</h3>
+          <div class="activite">
+            <input type="text" name="activites[0][titre]" placeholder="Titre de l'activité" required>
+          </div>
+        </div>
+        <button type="button" onclick="ajouterActivite()">Ajouter une activité</button>
+    
+        <hr>
+    
+        <!-- Groupe pages géographiques -->
+        <div id="pages_geographiques">
+          <h3>Pages Géographiques</h3>
+          <div class="commune-block">
+            <input type="radio" name="is_mcp" value="" required class="check-box">
+            <input type="text" name="pages_geo[0][communes]" class="commune-input" placeholder="Commune" required autocomplete="off">
+            <input type="hidden" name="pages_geo[0][codeinsee]" class="code-insee-input">
+            <input type="text" name="pages_geo[0][motcle]" placeholder="Mot clé" required>
+          </div>
+        </div>
+        <button type="button" onclick="ajouterPageGeo()">Ajouter une page géographique</button>
+        
+        <br><br>
+        <button type="submit">Exporter en .txt</button>
+    </form>
+    
+    <script>
+      let activiteIndex = 1;
+      function ajouterActivite() {
+        const container = document.getElementById('activites');
+        const div = document.createElement('div');
+        div.className = 'activite';
+        div.innerHTML = `
+          <input type="text" name="activites[${activiteIndex}][titre]" placeholder="Titre" required>
+        `;
+        container.appendChild(div);
+        activiteIndex++;
+      }
+    
+      let pageGeoIndex = 1;
+      function ajouterPageGeo() {
+        const container = document.getElementById('pages_geographiques');
+        const div = document.createElement('div');
+        div.className = 'commune-block';
+        div.innerHTML = `
+            <input type="radio" name="is_mcp" value="" class="is-mcp" required class="check-box">
+            <input type="text" name="pages_geo[${pageGeoIndex}][communes]" class="commune-input" placeholder="Commune" required autocomplete="off">
+            <input type="hidden" name="pages_geo[${pageGeoIndex}][codeinsee]" class="code-insee-input">
+            <input type="text" name="pages_geo[${pageGeoIndex}][motcle]" placeholder="Titre de page géographique" required>
+        `;
+        container.appendChild(div);
+        pageGeoIndex++;
+      }
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+    <script>
+        $(document).ready(function() {
+            $(document).on('focus', '.commune-input', function() {
+                const $input = $(this);
+
+                if ($input.data('autocomplete-initialized')) return;
+                $input.data('autocomplete-initialized', true);
+
+                $input.autocomplete({
+                source: "/autocomplete-communes",
+                minLength: 2,
+                select: function(event, ui) {
+                    $input.val(ui.item.value);
+                    $input.closest('.commune-block').find('.code-insee-input').val(ui.item.code_insee);
+                    $input.closest('.commune-block').find('.is-mcp').val(ui.item.code_insee);
+                    return false;
+                }
+                });
+            });
+        });
+    </script>
+    
