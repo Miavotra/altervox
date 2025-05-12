@@ -43,7 +43,7 @@ class ExportController extends AbstractController
                 }
             }
         }
-        $fields['Pages activiées'] = $activitesText;
+        $fields['Pages activitées'] = $activitesText;
 
         // Traiter les pages géographiques
         $pagesGeo = $request->request->all('pages_geo');
@@ -63,14 +63,8 @@ class ExportController extends AbstractController
         // Générer la réponse en téléchargement
         $response = new StreamedResponse(function () use ($fields) {
             $handle = fopen('php://output', 'w');
-            foreach ($fields as $label => $value) {
-                if($label =="Pages activiées" || $label == "Pages activiées"){
-                    fwrite($handle, PHP_EOL);
-                }
-                fwrite($handle, "$label: $value\n");
-                if($label =="Pages activiées" || $label == "Pages activiées"){
-                    fwrite($handle, PHP_EOL);
-                }
+            foreach ($fields as $label => $value) { 
+                fwrite($handle, "$label: $value\n"); 
             }
             fclose($handle);
         });
