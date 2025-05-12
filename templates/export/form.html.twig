@@ -37,7 +37,7 @@
         <div id="activites">
           <h3>Activités</h3>
           <div class="activite">
-            <input type="text" name="activites[0][titre]" placeholder="Titre de l'activité" required>
+            <input type="text" name="activites[][titre]" placeholder="Titre de l'activité" required>
           </div>
         </div>
         <button type="button" onclick="ajouterActivite()">Ajouter une activité</button>
@@ -49,9 +49,9 @@
           <h3>Pages Géographiques</h3>
           <div class="commune-block">
             <input type="radio" name="is_mcp" value="" required class="check-box">
-            <input type="text" name="pages_geo[0][communes]" class="commune-input" placeholder="Commune" required autocomplete="off">
-            <input type="hidden" name="pages_geo[0][codeinsee]" class="code-insee-input">
-            <input type="text" name="pages_geo[0][motcle]" placeholder="Mot clé" required>
+            <input type="text" name="pages_geo[][communes]" class="commune-input" placeholder="Commune" required autocomplete="off">
+            <input type="hidden" name="pages_geo[][codeinsee]" class="code-insee-input">
+            <input type="text" name="pages_geo[][motcle]" placeholder="Mot clé" required>
           </div>
         </div>
         <button type="button" onclick="ajouterPageGeo()">Ajouter une page géographique</button>
@@ -80,9 +80,9 @@
         div.className = 'commune-block';
         div.innerHTML = `
             <input type="radio" name="is_mcp" value="" class="is-mcp" required class="check-box">
-            <input type="text" name="pages_geo[${pageGeoIndex}][communes]" class="commune-input" placeholder="Commune" required autocomplete="off">
-            <input type="hidden" name="pages_geo[${pageGeoIndex}][codeinsee]" class="code-insee-input">
-            <input type="text" name="pages_geo[${pageGeoIndex}][motcle]" placeholder="Titre de page géographique" required>
+            <input type="text" name="pages_geo[][communes]" class="commune-input" placeholder="Commune" required autocomplete="off">
+            <input type="hidden" name="pages_geo[][codeinsee]" class="code-insee-input">
+            <input type="text" name="pages_geo[][motcle]" placeholder="Titre de page géographique" required>
         `;
         container.appendChild(div);
         pageGeoIndex++;
