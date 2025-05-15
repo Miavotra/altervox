@@ -20,6 +20,7 @@ class ExportController extends AbstractController
     {
         // Récupérer les champs simples
         $fields = [
+            'Mot clé principal' => $request->request->get('is_mcp').PHP_EOL . PHP_EOL . PHP_EOL,
             'Nom' => $request->request->get('nom'),
             'Prénom' => $request->request->get('prenom'),
             'Nom de la société' => $request->request->get('societe'),
@@ -29,17 +30,21 @@ class ExportController extends AbstractController
             'Adresse Mail' => $request->request->get('email'),
             'Téléphone' => $request->request->get('telephone'),
             'Horaires' => $request->request->get('horaires'),
-            'URL souhaitée' => $request->request->get('url'),
+            'URL souhaitée' => $request->request->get('url').PHP_EOL,
+            'Mot clé' => $request->request->get('motCleLists').PHP_EOL,
+            'Présentation' => "\nTEXT".PHP_EOL .PHP_EOL,
+            'Description contact' => "\nTEXT".PHP_EOL.PHP_EOL.PHP_EOL,
         ];
-
+        
         // Traiter les activités
         $activites = $request->request->all('activites');
-        $activitesText = "";
+        $activitesText = PHP_EOL .  count($activites)  . " Pages activitées" ;
+        $activitesText .= PHP_EOL . "<[-- Pages activitées à créer --]>" . PHP_EOL;
         if ($activites) {
             foreach ($activites as $act) {
                 $titre = $act['titre'] ?? '';
                 if ($titre) {
-                    $activitesText .= "§/P/$titre\n";
+                    $activitesText .= "§/P/" . $titre . "§TITRE\nMETADESCRIPTION\nTEXTE".PHP_EOL . PHP_EOL;
                 }
             }
         }
@@ -47,14 +52,17 @@ class ExportController extends AbstractController
 
         // Traiter les pages géographiques
         $pagesGeo = $request->request->all('pages_geo');
-        $pagesGeoText = "";
+        $pagesGeoText = PHP_EOL . count($pagesGeo['communes']) . " Pages géographiques" ;
+        $pagesGeoText .= PHP_EOL . "<[-- Pages géographiques à créer --]>" . PHP_EOL;
         if ($pagesGeo) {
-            foreach ($pagesGeo as $page) {
-                $communes = $page['communes'] ?? '';
-                $codeinsee = $page['codeinsee'] ?? '';
-                $motcle = $page['motcle'] ?? '';
+            foreach ($pagesGeo['communes'] as $key => $page) {
+                $communes = str_replace(['(',')'],'', $pagesGeo['communes'][$key]) ?? '';
+                $codeinsee = $pagesGeo['codeinsee'][$key] != "" ? $pagesGeo['codeinsee'][$key] :'0';
+                $motcle = $pagesGeo['motcles'][$key] ?? '';
+                if($fields['Mot clé principal'] == $codeinsee) 
+                    $fields['Mot clé principal'] = $motcle . " " . $communes;
                 if ($communes || $motcle) {
-                    $pagesGeoText .= "§/C/$codeinsee/$motcle $communes\n";
+                    $pagesGeoText .= "§/C/" . $codeinsee . "/" . $motcle . " " . $communes . "\nMETADESCRIPTION \nTEXTE".PHP_EOL . PHP_EOL;
                 }
             }
         }
@@ -64,13 +72,16 @@ class ExportController extends AbstractController
         $response = new StreamedResponse(function () use ($fields) {
             $handle = fopen('php://output', 'w');
             foreach ($fields as $label => $value) { 
-                fwrite($handle, "$label: $value\n"); 
+                if($label == 'Pages activitées' || $label == 'Pages géographiques')
+                    fwrite($handle, "$value\n"); 
+                else 
+                    fwrite($handle, "$label: $value\n"); 
             }
             fclose($handle);
         });
 
         $response->headers->set('Content-Type', 'text/plain');
-        $response->headers->set('Content-Disposition', 'attachment; filename="infos_societe.txt"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $request->request->get('societe') . '-ITW.txt"');
 
         return $response;
     }

@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+  Générateur SQL
+{% endblock %}
+
+{% block body %}
+  <section class="py-5">
+    <div class="container ">
+      <div class="sect-title text-center">
+            <div class="h1">
+                Générer votre SQL
+            </div>
+        </div>
+      <form id="txt-to-sql-form" action="{{ path('generateur_sql_process') }}" method="POST">
+        <label for="txtContent" class="form-label">Collez ici le contenu du fichier .txt :</label>
+        <textarea name="txt_content" id="txtContent" class="form-control" rows="20" required></textarea>
+        <button type="submit" class="btn btn-primary mt-3">Générer le script SQL</button>
+      </form>
+    </div>
+
+  </section>
+{% endblock %}
