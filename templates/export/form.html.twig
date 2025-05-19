@@ -49,6 +49,10 @@
         <label>Numéro de téléphone:</label>
         <input type="tel" placeholder="03 00 00 00 00" name="telephone" required>
       </div>
+      <div class="form-groupe">
+        <label>Numéro de portable :</label>
+        <input type="tel" placeholder="03 00 00 00 00" name="portable" >
+      </div>
   
       <div class="form-groupe">
         <label>Horaires d’ouverture (ex: Mo-Fr 09:00-17:00):</label>
@@ -60,6 +64,39 @@
         <input type="url" name="url" placeholder="http://nomsociete.fr" required>
       </div>
   
+      <div class="form-groupe">
+        <label>Linkedin:</label>
+        <input type="url" placeholder="https://www.linkedin.com/in/" name="linkedin" required>
+      </div>
+      <div class="form-groupe">
+        <label>Google Business :</label>
+        <input type="url" placeholder="https://business.google.com/fr/business-profile/" name="google-business" required>
+      </div>
+      <div class="form-groupe">
+        <label>RCS :</label>
+        <input type="text" placeholder="000 000 000" name="rcs" >
+      </div>
+      <div class="form-groupe">
+        <label>Taille de la société :</label>
+        <input type="text" placeholder="" name="taille-societe" >
+      </div>
+      <div class="form-groupe">
+        <label>Certification :</label>
+        <input type="text" placeholder="" name="certification" >
+      </div>
+      <div class="form-groupe">
+        <label>Assurance :</label>
+        <input type="text" placeholder="" name="assurance" >
+      </div>
+      <div class="form-groupe">
+        <label>logo souhaité :</label>
+        <input type="text" placeholder="" name="logo" >
+      </div>
+      <div class="form-groupe">
+        <label>Info supplémentaires :</label>
+        <input type="text" placeholder="" name="info-plus" >
+      </div>
+
       <hr>
   
       <!-- Groupe d'activités -->
@@ -184,6 +221,7 @@
       $com2 =  (e.closest(".commune-block").querySelector("select").value ? e.closest(".commune-block").querySelector("select").value : "");
       $com1 = (e.closest(".commune-block").querySelector(".commune-input").value ? e.closest(".commune-block").querySelector(".commune-input").value : "");
       $comf= $com2 + " " + $com1;
+      console.log($comf)
       e.value =  $comf;
     } 
   </script>

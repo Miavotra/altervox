@@ -29,17 +29,25 @@ class ExportController extends AbstractController
             'Commune' => $request->request->get('commune'),
             'Adresse Mail' => $request->request->get('email'),
             'Téléphone' => $request->request->get('telephone'),
+            'Portable' => $request->request->get('portable'),
+            'Linkedin' => $request->request->get('linkedin'),
+            'Google business' => $request->request->get('google-business'),
+            'RCS' => $request->request->get('rcs'),
+            'Taille de la société' => $request->request->get('taille-societe'),
+            'Certification' => $request->request->get('certification'),
+            'Assurance' => $request->request->get('assurance'),
+            'Logo' => $request->request->get('logo'),
+            'Info supplémentaire' => $request->request->get('info-plus'),
             'Horaires' => $request->request->get('horaires'),
             'URL souhaitée' => $request->request->get('url').PHP_EOL,
             'Mot clé' => $request->request->get('motCleLists').PHP_EOL,
-            'Présentation' => "\nTEXT".PHP_EOL .PHP_EOL,
-            'Description contact' => "\nTEXT".PHP_EOL.PHP_EOL.PHP_EOL,
+            'Présentation' => "TEXT".PHP_EOL .PHP_EOL,
+            'Description contact' => "TEXT".PHP_EOL.PHP_EOL.PHP_EOL,
         ];
         
         // Traiter les activités
         $activites = $request->request->all('activites');
-        $activitesText = PHP_EOL .  count($activites)  . " Pages activitées" ;
-        $activitesText .= PHP_EOL . "<[-- Pages activitées à créer --]>" . PHP_EOL;
+        $activitesText = PHP_EOL . "##<[-- " .  count($activites)  . " Pages activitées à créer --]>" . PHP_EOL;
         if ($activites) {
             foreach ($activites as $act) {
                 $titre = $act['titre'] ?? '';
@@ -52,8 +60,7 @@ class ExportController extends AbstractController
 
         // Traiter les pages géographiques
         $pagesGeo = $request->request->all('pages_geo');
-        $pagesGeoText = PHP_EOL . count($pagesGeo['communes']) . " Pages géographiques" ;
-        $pagesGeoText .= PHP_EOL . "<[-- Pages géographiques à créer --]>" . PHP_EOL;
+        $pagesGeoText = PHP_EOL . "##<[-- " . count($pagesGeo['communes']) . " Pages géographiques à créer --]>" . PHP_EOL;
         if ($pagesGeo) {
             foreach ($pagesGeo['communes'] as $key => $page) {
                 $communes = str_replace(['(',')'],'', $pagesGeo['communes'][$key]) ?? '';
@@ -97,7 +104,7 @@ class ExportController extends AbstractController
 
         $suggestions = array_map(fn($row) => [
             'label' => "{$row['nom']} ({$row['code_postal']})",
-            'value' => "{$row['nom']} ({$row['code_postal']})",
+            'value' => "{$row['nom']} {$row['code_postal']}",
             'code_insee' => "{$row['code_insee']}",
         ], $results);
 

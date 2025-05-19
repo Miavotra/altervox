@@ -7,11 +7,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\{Request, StreamedResponse, ResponseHeaderBag};
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
+
+use App\Entity\Communes;
+use App\Repository\CommunesRepository;
 
 class TexteToSqlController extends AbstractController
 {
     #[Route('/generateur/sql/process', name: 'generateur_sql_process', methods: ['POST'])]
-    public function process(Request $request): Response
+    public function process(Request $request, CommunesRepository $communesRepository,SluggerInterface $slugger): Response
     {
         $content = $request->request->get('txt_content');
         $lines = explode("\n", $content);
@@ -25,27 +29,44 @@ class TexteToSqlController extends AbstractController
         $current_geo = [];
         // Générer le contenu SQL
         $sql = "
+            DROP TABLES IF EXISTS entreprise;
             CREATE TABLE entreprise (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 nom VARCHAR(255)  NULL,
                 prenom VARCHAR(255)  NULL,
                 societe VARCHAR(255)  NULL,
                 adresse VARCHAR(255)  NULL,
-                commune VARCHAR(10)  NULL,
+                commune VARCHAR(255)  NULL,
                 telephone VARCHAR(255)  NULL,
-                societe VARCHAR(10)  NULL,
-                horaires VARCHAR(10)  NULL,
-                url VARCHAR(10)  NULL,
+                horaires VARCHAR(100)  NULL,
+                linkedin VARCHAR(100)  NULL,
+                portable VARCHAR(100)  NULL,
+                google_business VARCHAR(100)  NULL,
+                rcs VARCHAR(100)  NULL,
+                certification VARCHAR(100)  NULL,
+                assurance VARCHAR(100)  NULL,
+                logo VARCHAR(100)  NULL,
+                info_sup VARCHAR(100)  NULL,
+                url VARCHAR(100)  NULL,
                 presentation TEXT  NULL,
-                description_contact TEXT  NULL,
+                description_contact TEXT  NULL
             );
+            DROP TABLES IF EXISTS urls;
+            CREATE TABLE urls (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                slug VARCHAR(255)  NULL,
+                a_id int  NULL,
+                c_id int  NULL
+            );
+            DROP TABLES IF EXISTS activites;
             CREATE TABLE activites (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 menu VARCHAR(255)  NULL,
                 titre VARCHAR(255)  NULL,
                 presentation TEXT  NULL,
-                meta_description TEXT  NULL,
+                meta_description TEXT  NULL
             );
+            DROP TABLES IF EXISTS mots_cles_geographiques;
             CREATE TABLE mots_cles_geographiques (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 nom VARCHAR(255)  NULL,
@@ -56,23 +77,30 @@ class TexteToSqlController extends AbstractController
                 meta_description TEXT  NULL,
                 latitude VARCHAR(25)  NULL,
                 longitude VARCHAR(25)  NULL,
-                page_principale BOOLEAN  NULL
+                page_principale INT  NULL
             );\n\n
         ";
 
+        $cp_mcp = "";
 
         foreach ($lines as $line) {
             $line = trim($line);
 
             // Changement de section
-            if (str_starts_with($line, '<[-- Pages activitées à créer --]>')) {
-                $current_section = 'activite';
+            if (str_starts_with($line, '##')) {
                 continue;
             }
+            if (str_starts_with($line, '§/P/')) {
+                $current_section = 'activite';
+            }
 
-            if (str_starts_with($line, '<[-- Pages géographiques à créer --]>')) {
+            if (str_starts_with($line, '§/C/')) {
                 $current_section = 'geo';
-                continue;
+            }
+            if (str_starts_with($line, 'Mot clé principal: ')) {
+                if (preg_match('/^(.+?):\s*(.+)$/', $line, $matches)) {
+                    $cp_mcp = $matches[2];
+                }
             }
 
             // Traitement selon section
@@ -80,7 +108,7 @@ class TexteToSqlController extends AbstractController
                 case 'entreprise':
                     if (preg_match('/^(.+?):\s*(.+)$/', $line, $matches)) {
                         $key = strtolower(str_replace(' ', '_', $matches[1]));
-                        $entreprise[$key] = $matches[2];
+                        $entreprise[$key] = $matches[2] ? $matches[2] : "";
                     }
                     break;
 
@@ -89,11 +117,14 @@ class TexteToSqlController extends AbstractController
                         if (!empty($current_activite)) {
                             $activites[] = $current_activite;
                             $current_activite = [];
-                            $current_activite['menu'] = $titre[1];
+                            $titre = explode('§', $line);
+                            $menu = explode("/P/" , $titre[1]);
+                            $current_activite['menu'] = $menu[1];
                             $current_activite['titre'] = $titre[2];
                         } else {
                             $titre = explode('§', $line);
-                            $current_activite['menu'] = $titre[1];
+                            $menu = explode("/P/" , $titre[1]);
+                            $current_activite['menu'] = $menu[1];
                             $current_activite['titre'] = $titre[2];
                         }
                         continue;
@@ -139,9 +170,8 @@ class TexteToSqlController extends AbstractController
             $geo_pages[] = $current_geo;
         }
 
-
         // Table entreprise
-        $sql .= "INSERT INTO entreprise (nom, prenom, societe, adresse, commune, telephone, horaires, url, presentation, description_contact)\nVALUES (\n";
+        $sql .= "INSERT INTO entreprise (nom, prenom, societe, adresse, commune, telephone, horaires, url, linkedin, portable, google_business, rcs, certification, assurance, logo, info_sup, presentation, description_contact)\nVALUES (\n";
         $sql .= "'" . addslashes($entreprise['nom']) . "', ";
         $sql .= "'" . addslashes($entreprise['prénom']) . "', ";
         $sql .= "'" . addslashes($entreprise['nom_de_la_société']) . "', ";
@@ -149,30 +179,52 @@ class TexteToSqlController extends AbstractController
         $sql .= "'" . addslashes($entreprise['commune']) . "', ";
         $sql .= "'" . addslashes($entreprise['téléphone']) . "', ";
         $sql .= "'" . addslashes($entreprise['horaires']) . "', ";
+        $sql .= "'" . addslashes($entreprise['linkedin']) . "', ";
         $sql .= "'" . addslashes($entreprise['url_souhaitée']) . "', ";
-        $sql .= "'" . addslashes($entreprise['presentation'] ?? '') . "', ";
+        $sql .= "'" . addslashes($entreprise['portable'] ?? "") . "', ";
+        $sql .= "'" . addslashes($entreprise['google_business'] ??  "") . "', ";
+        $sql .= "'" . addslashes($entreprise['rcs'] ?? "000 000 000") . "', ";
+        $sql .= "'" . addslashes($entreprise['certification'] ?? "") . "', ";
+        $sql .= "'" . addslashes($entreprise['assurance'] ?? "") . "', ";
+        $sql .= "'" . addslashes($entreprise['logo'] ?? "") . "', ";
+        $sql .= "'" . addslashes($entreprise['info_sup'] ??  "") . "', ";
+        $sql .= "'" . addslashes($entreprise['présentation'] ?? '') . "', ";
         $sql .= "'" . addslashes($entreprise['description_contact'] ?? '') . "'\n);\n\n";
 
         // Table activites
+        $a_id= 1;
         foreach ($activites as $act) {
-            $sql .= "INSERT INTO activites (menu, titre, presentation, meta_description)\nVALUES (\n";
+            $sql .= "INSERT INTO activites (id, menu, titre, presentation, meta_description)\nVALUES (\n";
+            $sql .= "" . $a_id . ", ";
             $sql .= "'" . addslashes($act['menu']) . "', ";
             $sql .= "'" . addslashes($act['titre']) . "', ";
             $sql .= "'" . addslashes($act['presentation']) . "', ";
             $sql .= "'" . addslashes($act['meta_description']) . "'\n);\n\n";
+            $sql .= "INSERT INTO urls (slug, a_id, c_id) VALUES (";
+            $sql .= "'" . $slugger->slug(addslashes($act['menu'])) . "', " . $a_id .", 0);\n";
+            $a_id++;
         }
-
+        $c_id= 1;
         // Table mots_cles_geographiques
         foreach ($geo_pages as $geo) {
-            $coord = ["0","1"];
-            $sql .= "INSERT INTO mots_cles_geographiques (identifiant_insee, mot_cle, nom, description_html, meta_description, latitude, longitude)\nVALUES (\n";
+            $comu = new Communes();
+            $comu = $communesRepository->findOneBy(["code_insee" => strval($geo['identifiant_insee'])]);
+            $isMC = $geo['nom'] == $cp_mcp ? 1 : 0;
+            $mc = explode($comu->getNom(), addslashes($geo['mot_cle']));
+            $sql .= "INSERT INTO mots_cles_geographiques (id, identifiant_insee, code_postal,mot_cle, nom, description_html, meta_description, latitude, longitude, page_principale)\nVALUES (\n";
+            $sql .= "'" . $c_id . "', ";
             $sql .= "'" . addslashes($geo['identifiant_insee']) . "', ";
-            $sql .= "'" . addslashes($geo['mot_cle']) . "', ";
+            $sql .= "'" . $comu->getCodePostal() . "', ";
+            $sql .= "'" . $mc[0] . "', ";
             $sql .= "'" . addslashes($geo['nom']) . "', ";
             $sql .= "'" . addslashes(trim($geo['description_html'])) . "', ";
-            $sql .= "'" . addslashes($geo['meta_description']) . ",";
-            $sql .= "'" . $coord[0] . ",";
-            $sql .= "'" . $coord[1] . "'\n);\n\n";
+            $sql .= "'" . addslashes($geo['meta_description']) . "',";
+            $sql .= "'" . $comu->getLatitude() . "',";
+            $sql .= "'" . $comu->getLongitude() . "',";
+            $sql .= "" . $isMC . "\n);\n";
+            $sql .= "INSERT INTO urls (slug, a_id, c_id) VALUES (";
+            $sql .= "'" . $slugger->slug(addslashes($geo['nom'])) . "', 0, " . $c_id .");\n";
+            $c_id++;
         }
 
         // Nom du fichier SQL
