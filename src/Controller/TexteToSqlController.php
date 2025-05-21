@@ -29,7 +29,7 @@ class TexteToSqlController extends AbstractController
         $current_geo = [];
         // Générer le contenu SQL
         $sql = "
-            DROP TABLES IF EXISTS entreprise;
+            DROP TABLE IF EXISTS entreprise;
             CREATE TABLE entreprise (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 nom VARCHAR(255)  NULL,
@@ -37,6 +37,7 @@ class TexteToSqlController extends AbstractController
                 societe VARCHAR(255)  NULL,
                 adresse VARCHAR(255)  NULL,
                 commune VARCHAR(255)  NULL,
+                code_postal VARCHAR(255)  NULL,
                 telephone VARCHAR(255)  NULL,
                 horaires VARCHAR(100)  NULL,
                 linkedin VARCHAR(100)  NULL,
@@ -51,7 +52,7 @@ class TexteToSqlController extends AbstractController
                 presentation TEXT  NULL,
                 description_contact TEXT  NULL
             );
-            DROP TABLES IF EXISTS urls;
+            DROP TABLE IF EXISTS urls;
             CREATE TABLE urls (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 slug VARCHAR(255)  NULL,
@@ -66,7 +67,7 @@ class TexteToSqlController extends AbstractController
                 presentation TEXT  NULL,
                 meta_description TEXT  NULL
             );
-            DROP TABLES IF EXISTS mots_cles_geographiques;
+            DROP TABLE IF EXISTS mots_cles_geographiques;
             CREATE TABLE mots_cles_geographiques (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 nom VARCHAR(255)  NULL,
@@ -171,12 +172,13 @@ class TexteToSqlController extends AbstractController
         }
 
         // Table entreprise
-        $sql .= "INSERT INTO entreprise (nom, prenom, societe, adresse, commune, telephone, horaires, url, linkedin, portable, google_business, rcs, certification, assurance, logo, info_sup, presentation, description_contact)\nVALUES (\n";
+        $sql .= "INSERT INTO entreprise (nom, prenom, societe, adresse, commune, code_postal, telephone, horaires, url, linkedin, portable, google_business, rcs, certification, assurance, logo, info_sup, presentation, description_contact)\nVALUES (\n";
         $sql .= "'" . addslashes($entreprise['nom']) . "', ";
         $sql .= "'" . addslashes($entreprise['prénom']) . "', ";
         $sql .= "'" . addslashes($entreprise['nom_de_la_société']) . "', ";
         $sql .= "'" . addslashes($entreprise['adresse']) . "', ";
         $sql .= "'" . addslashes($entreprise['commune']) . "', ";
+        $sql .= "'" . addslashes($entreprise['code_postal']) . "', ";
         $sql .= "'" . addslashes($entreprise['téléphone']) . "', ";
         $sql .= "'" . addslashes($entreprise['horaires']) . "', ";
         $sql .= "'" . addslashes($entreprise['linkedin']) . "', ";
@@ -210,6 +212,9 @@ class TexteToSqlController extends AbstractController
             $comu = new Communes();
             $comu = $communesRepository->findOneBy(["code_insee" => strval($geo['identifiant_insee'])]);
             $isMC = $geo['nom'] == $cp_mcp ? 1 : 0;
+            if(!isset($comu)) {
+                continue;
+            }
             $mc = explode($comu->getNom(), addslashes($geo['mot_cle']));
             $sql .= "INSERT INTO mots_cles_geographiques (id, identifiant_insee, code_postal,mot_cle, nom, description_html, meta_description, latitude, longitude, page_principale)\nVALUES (\n";
             $sql .= "'" . $c_id . "', ";

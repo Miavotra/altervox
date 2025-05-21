@@ -74,7 +74,7 @@
       </div>
       <div class="form-groupe">
         <label>RCS :</label>
-        <input type="text" placeholder="000 000 000" name="rcs" >
+        <input type="text" placeholder="000 000 000" value="000 000 000" name="rcs" >
       </div>
       <div class="form-groupe">
         <label>Taille de la société :</label>
@@ -148,9 +148,14 @@
     const motCleListInput = document.getElementById('mot-cle-list-input');
     const addMotCleBtn = document.getElementById('add-mot-cle');
 
-    function updateMotCleUI() {
+    function updateMotCleUI(param) {
         motCleList.innerHTML = '';
+        var index = 0;
         document.querySelectorAll('.mot-cle-select').forEach(select => {
+          index ++;
+          if(param == "alefa" && index != document.querySelectorAll('.mot-cle-select').length ) {
+            return;  
+          } 
             select.innerHTML = '';
             motsCles.forEach((mot,index) => {
                 const selectedAttr = index === 0 ? true : false;
@@ -173,7 +178,7 @@
         const mot = motCleInput.value.trim();
         if (mot && !motsCles.has(mot)) {
             motsCles.add(mot);
-            updateMotCleUI();
+            updateMotCleUI("news");
             motCleInput.value = '';
             motCleListInput.value = [...motsCles].join(', ');
         }
@@ -208,7 +213,7 @@
           <button type="button" onclick="removeLineGeo(this)"><i class="fa fa-trash" ></i></button>
       `;
       container.appendChild(div);
-      updateMotCleUI();
+      updateMotCleUI("alefa");
     }
 
     function removeLineAct(e) {

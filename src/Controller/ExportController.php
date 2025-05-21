@@ -20,7 +20,7 @@ class ExportController extends AbstractController
     {
         // Récupérer les champs simples
         $fields = [
-            'Mot clé principal' => $request->request->get('is_mcp').PHP_EOL . PHP_EOL . PHP_EOL,
+            'Mot clé principal' => $request->request->get('is_mcp') . PHP_EOL . PHP_EOL . PHP_EOL,
             'Nom' => $request->request->get('nom'),
             'Prénom' => $request->request->get('prenom'),
             'Nom de la société' => $request->request->get('societe'),
@@ -39,20 +39,22 @@ class ExportController extends AbstractController
             'Logo' => $request->request->get('logo'),
             'Info supplémentaire' => $request->request->get('info-plus'),
             'Horaires' => $request->request->get('horaires'),
-            'URL souhaitée' => $request->request->get('url').PHP_EOL,
-            'Mot clé' => $request->request->get('motCleLists').PHP_EOL,
-            'Présentation' => "TEXT".PHP_EOL .PHP_EOL,
-            'Description contact' => "TEXT".PHP_EOL.PHP_EOL.PHP_EOL,
+            'URL souhaitée' => $request->request->get('url') . PHP_EOL,
+            'Mot clé' => $request->request->get('motCleLists') . PHP_EOL,
+            'Présentation' => "TEXT" . PHP_EOL . PHP_EOL,
+            'Description contact' => "TEXT" . PHP_EOL . PHP_EOL . PHP_EOL,
         ];
-        
+
         // Traiter les activités
         $activites = $request->request->all('activites');
-        $activitesText = PHP_EOL . "##<[-- " .  count($activites)  . " Pages activitées à créer --]>" . PHP_EOL;
+        $activitesText = PHP_EOL . "##<[-- " . count($activites) . " Pages activitées à créer --]>" . PHP_EOL;
+        $activitesText .= "§/P/Accueil§TITRE\nMETADESCRIPTION\nTEXTE" . PHP_EOL . PHP_EOL;
+
         if ($activites) {
             foreach ($activites as $act) {
                 $titre = $act['titre'] ?? '';
                 if ($titre) {
-                    $activitesText .= "§/P/" . $titre . "§TITRE\nMETADESCRIPTION\nTEXTE".PHP_EOL . PHP_EOL;
+                    $activitesText .= "§/P/" . $titre . "§TITRE\nMETADESCRIPTION\nTEXTE" . PHP_EOL . PHP_EOL;
                 }
             }
         }
@@ -63,13 +65,13 @@ class ExportController extends AbstractController
         $pagesGeoText = PHP_EOL . "##<[-- " . count($pagesGeo['communes']) . " Pages géographiques à créer --]>" . PHP_EOL;
         if ($pagesGeo) {
             foreach ($pagesGeo['communes'] as $key => $page) {
-                $communes = str_replace(['(',')'],'', $pagesGeo['communes'][$key]) ?? '';
-                $codeinsee = $pagesGeo['codeinsee'][$key] != "" ? $pagesGeo['codeinsee'][$key] :'0';
+                $communes = str_replace(['(', ')'], '', $pagesGeo['communes'][$key]) ?? '';
+                $codeinsee = $pagesGeo['codeinsee'][$key] != "" ? $pagesGeo['codeinsee'][$key] : '0';
                 $motcle = $pagesGeo['motcles'][$key] ?? '';
-                if($fields['Mot clé principal'] == $codeinsee) 
+                if ($fields['Mot clé principal'] == $codeinsee)
                     $fields['Mot clé principal'] = $motcle . " " . $communes;
                 if ($communes || $motcle) {
-                    $pagesGeoText .= "§/C/" . $codeinsee . "/" . $motcle . " " . $communes . "\nMETADESCRIPTION \nTEXTE".PHP_EOL . PHP_EOL;
+                    $pagesGeoText .= "§/C/" . $codeinsee . "/" . $motcle . " " . $communes . "\nMETADESCRIPTION \nTEXTE" . PHP_EOL . PHP_EOL;
                 }
             }
         }
@@ -78,11 +80,11 @@ class ExportController extends AbstractController
         // Générer la réponse en téléchargement
         $response = new StreamedResponse(function () use ($fields) {
             $handle = fopen('php://output', 'w');
-            foreach ($fields as $label => $value) { 
-                if($label == 'Pages activitées' || $label == 'Pages géographiques')
-                    fwrite($handle, "$value\n"); 
-                else 
-                    fwrite($handle, "$label: $value\n"); 
+            foreach ($fields as $label => $value) {
+                if ($label == 'Pages activitées' || $label == 'Pages géographiques')
+                    fwrite($handle, "$value\n");
+                else
+                    fwrite($handle, "$label: $value\n");
             }
             fclose($handle);
         });
