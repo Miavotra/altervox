@@ -181,8 +181,8 @@ class TexteToSqlController extends AbstractController
         $sql .= "'" . addslashes($entreprise['code_postal']) . "', ";
         $sql .= "'" . addslashes($entreprise['téléphone']) . "', ";
         $sql .= "'" . addslashes($entreprise['horaires']) . "', ";
-        $sql .= "'" . addslashes($entreprise['linkedin']) . "', ";
         $sql .= "'" . addslashes($entreprise['url_souhaitée']) . "', ";
+        $sql .= "'" . addslashes($entreprise['linkedin']) . "', ";
         $sql .= "'" . addslashes($entreprise['portable'] ?? "") . "', ";
         $sql .= "'" . addslashes($entreprise['google_business'] ??  "") . "', ";
         $sql .= "'" . addslashes($entreprise['rcs'] ?? "000 000 000") . "', ";
